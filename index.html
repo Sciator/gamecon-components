@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <label id="combo2-label" class="combo-label">Multiselect with buttons</label>
+  <span id="combo2-remove" style="display: none">remove</span> <!-- used as descriptive text for option buttons; if used within the button text itself, it ends up being read with the input name -->
+  <ul class="selected-options" id="combo2-selected"></ul>
+  <div class="combo js-multi-buttons">
+    <div role="combobox" aria-haspopup="listbox" aria-expanded="false" aria-owns="listbox2" class="input-wrapper">
+      <input
+        aria-activedescendant=""
+        aria-autocomplete="list"
+        aria-labelledby="combo2-label combo2-selected"
+        id="combo2"
+        class="combo-input"
+        type="text">
+    </div>
+    <div class="combo-menu" role="listbox" aria-multiselectable="true" id="listbox2"></div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

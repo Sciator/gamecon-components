@@ -39,7 +39,7 @@ const MenuActions = {
 
 // filter an array of options against an input string
 // returns an array of options that begin with the filter string, case-independent
-function filterOptions(options = [], filter, exclude = []) {
+const filterOptions = (options = [], filter, exclude = []) => {
   return options.filter((option) => {
     const matches = option.toLowerCase().indexOf(filter.toLowerCase()) === 0;
     return matches && exclude.indexOf(option) < 0;
@@ -47,17 +47,17 @@ function filterOptions(options = [], filter, exclude = []) {
 }
 
 // return an array of exact option name matches from a comma-separated string
-function findMatches(options, search) {
+const findMatches = (options, search) => {
   const names = search.split(',');
   return names.map((name) => {
     const match = options.filter((option) => name.trim().toLowerCase() === option.toLowerCase());
     return match.length > 0 ? match[0] : null;
   })
-  .filter((option) => option !== null);
+    .filter((option) => option !== null);
 }
 
 // return combobox action from key press
-function getActionFromKey(key, menuOpen) {
+const getActionFromKey = (key, menuOpen) => {
   // handle opening when closed
   if (!menuOpen && key === Keys.Down) {
     return MenuActions.Open;
@@ -88,14 +88,14 @@ function getActionFromKey(key, menuOpen) {
 }
 
 // get index of option that matches a string
-function getIndexByLetter(options, filter) {
+const getIndexByLetter = (options, filter) => {
   const firstMatch = filterOptions(options, filter)[0];
   return firstMatch ? options.indexOf(firstMatch) : -1;
 }
 
 // get updated option index
-function getUpdatedIndex(current, max, action) {
-  switch(action) {
+const getUpdatedIndex = (current, max, action) => {
+  switch (action) {
     case MenuActions.First:
       return 0;
     case MenuActions.Last:
@@ -110,12 +110,12 @@ function getUpdatedIndex(current, max, action) {
 }
 
 // check if an element is currently scrollable
-function isScrollable(element) {
+const isScrollable = (element) => {
   return element && element.clientHeight < element.scrollHeight;
 }
 
 // ensure given child element is within the parent's visible scroll area
-function maintainScrollVisibility(activeElement, scrollParent) {
+const maintainScrollVisibility = (activeElement, scrollParent) => {
   const { offsetHeight, offsetTop } = activeElement;
   const { offsetHeight: parentOffsetHeight, scrollTop } = scrollParent;
 
@@ -135,10 +135,7 @@ function maintainScrollVisibility(activeElement, scrollParent) {
  */
 class MultiselectButtons {
   init() {
-    this.inputEl.addEventListener('input', this.onInput.bind(this));
-    this.inputEl.addEventListener('blur', this.onInputBlur.bind(this));
-    this.inputEl.addEventListener('click', () => this.updateMenuState(true));
-    this.inputEl.addEventListener('keydown', this.onInputKeyDown.bind(this));
+    this._initCallbacks()
 
     this.options.map((option, index) => {
       const optionEl = document.createElement('div');
@@ -155,25 +152,18 @@ class MultiselectButtons {
     });
   }
 
-  filterOptions(value) {
-    this.filteredOptions = filterOptions(this.options, value);
+  // #region htmlCallbacks
 
-    // hide/show options based on filtering
-    const options = this.el.querySelectorAll('[role=option]');
-    [...options].forEach((optionEl) => {
-      const value = optionEl.innerText;
-      if (this.filteredOptions.indexOf(value) > -1) {
-        optionEl.style.display = 'block';
-      }
-      else {
-        optionEl.style.display = 'none';
-      }
-    });
+  _initCallbacks() {
+    this.inputEl.addEventListener('input', this._onInput.bind(this));
+    this.inputEl.addEventListener('blur', this._onInputBlur.bind(this));
+    this.inputEl.addEventListener('click', this._onClick.bind(this));
+    this.inputEl.addEventListener('keydown', this._onInputKeyDown.bind(this));
   }
 
-  onInput() {
-    const curValue = this.inputEl.value;
-    this.filterOptions(curValue);
+  _onInput() {
+    const currentValue = this.inputEl.value;
+    this.filterOptions(currentValue);
 
     // if active option is not in filtered options, set it to first filtered option
     if (this.filteredOptions.indexOf(this.options[this.activeIndex]) < 0) {
@@ -187,7 +177,18 @@ class MultiselectButtons {
     }
   }
 
-  onInputKeyDown(event) {
+  _onInputBlur() {
+    if (this.ignoreBlur) {
+      this.ignoreBlur = false;
+      return;
+    }
+
+    if (this.open) {
+      this.updateMenuState(false, false);
+    }
+  }
+
+  _onInputKeyDown(event) {
     const { key } = event;
 
     const max = this.filteredOptions.length - 1;
@@ -206,7 +207,7 @@ class MultiselectButtons {
         return this.onOptionChange(nextRealIndex);
       case MenuActions.CloseSelect:
         event.preventDefault();
-        return this.updateOption(this.activeIndex);
+        return this.updateOptionAt(this.activeIndex);
       case MenuActions.Close:
         event.preventDefault();
         return this.updateMenuState(false);
@@ -215,17 +216,36 @@ class MultiselectButtons {
     }
   }
 
-  onInputBlur() {
-    if (this.ignoreBlur) {
-      this.ignoreBlur = false;
-      return;
-    }
-
-    if (this.open) {
-      this.updateMenuState(false, false);
-    }
+  _onClick() {
+    this.updateMenuState(true)
   }
 
+  // #endregion htmlCallbacks
+
+
+  /**
+   * hide/show options based on filtering
+   * @param {string} value 
+   */
+  filterOptions(value) {
+    this.filteredOptions = filterOptions(this.options, value);
+
+    const options = this.el.querySelectorAll('[role=option]');
+    [...options].forEach((optionEl) => {
+      const value = optionEl.innerText;
+      if (this.filteredOptions.indexOf(value) > -1) {
+        optionEl.style.display = 'block';
+      }
+      else {
+        optionEl.style.display = 'none';
+      }
+    });
+  }
+
+  /**
+   * 
+   * @param {number} index 
+   */
   onOptionChange(index) {
     this.activeIndex = index;
     this.inputEl.setAttribute('aria-activedescendant', `${this.idBase}-${index}`);
@@ -242,9 +262,13 @@ class MultiselectButtons {
     }
   }
 
+  /**
+   * 
+   * @param {number} index 
+   */
   onOptionClick(index) {
     this.onOptionChange(index);
-    this.updateOption(index);
+    this.updateOptionAt(index);
     this.inputEl.focus();
   }
 
@@ -252,7 +276,11 @@ class MultiselectButtons {
     this.ignoreBlur = true;
   }
 
-  removeOption(index) {
+  /**
+   * 
+   * @param {number} index 
+   */
+  deselectOptionAtAt(index) {
     const option = this.options[index];
 
     // update aria-selected
@@ -265,7 +293,11 @@ class MultiselectButtons {
     this.selectedEl.removeChild(buttonEl.parentElement);
   }
 
-  selectOption(index) {
+  /**
+   * 
+   * @param {number} index 
+   */
+  selectOptionAt(index) {
     const selected = this.options[index];
     this.activeIndex = index;
 
@@ -281,26 +313,27 @@ class MultiselectButtons {
     buttonEl.type = 'button';
     buttonEl.id = `${this.idBase}-remove-${index}`;
     buttonEl.setAttribute('aria-describedby', `${this.idBase}-remove`);
-    buttonEl.addEventListener('click', () => { this.removeOption(index); });
+    buttonEl.addEventListener('click', () => { this.deselectOptionAtAt(index); });
     buttonEl.innerHTML = selected + ' ';
 
     listItem.appendChild(buttonEl);
     this.selectedEl.appendChild(listItem);
   }
 
-  updateOption(index) {
+  /**
+   * 
+   * @param {number} index 
+   */
+  updateOptionAt(index) {
     const option = this.options[index];
     const optionEls = this.el.querySelectorAll('[role=option]');
     const optionEl = optionEls[index];
     const isSelected = optionEl.getAttribute('aria-selected') === 'true';
 
-    if (isSelected) {
-      this.removeOption(index);
-    }
-
-    else {
-      this.selectOption(index);
-    }
+    if (isSelected)
+      this.deselectOptionAtAt(index);
+    else
+      this.selectOptionAt(index);
 
     this.inputEl.value = '';
     this.filterOptions('');
@@ -314,8 +347,11 @@ class MultiselectButtons {
     callFocus && this.inputEl.focus();
   }
 
+  /**
+   * @param {Element} el - The x value.
+   * @param {string[]} options - The y value.
+   */
   constructor(el, options) {
-    // element refs
     this.el = el;
     this.comboEl = el.querySelector('[role=combobox]');
     this.inputEl = el.querySelector('input');

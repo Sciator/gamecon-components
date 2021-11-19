@@ -1,6 +1,3 @@
-// options for all examples
-const options = ['Apple', 'Apricot', 'Banana', 'Blackberry', 'Blueberry', 'Cantaloupe', 'Cherry', 'Date', 'Durian', 'Eggplant', 'Fig', 'Grape', 'Guava', 'Huckleberry'];
-
 /*
  * Helper constants and functions
  */

@@ -127,6 +127,8 @@ const maintainScrollVisibility = (activeElement, scrollParent) => {
   }
 }
 
+// TODO: don't pass index when passing option string
+
 /*
  * Multiselect Combobox w/ Buttons code
  */
@@ -135,21 +137,11 @@ class MultiselectButtons {
     this._initCallbacks()
 
     this.options.map((option, index) => {
-      const optionEl = document.createElement('div');
-      optionEl.setAttribute('role', 'option');
-      optionEl.id = `${this.idBase}-${index}`;
-      optionEl.className = index === 0 ? 'combo-option option-current' : 'combo-option';
-      optionEl.setAttribute('aria-selected', 'false');
-      optionEl.innerText = option;
-
-      optionEl.addEventListener('click', this._onOptionClick.bind(this, index));
-      optionEl.addEventListener('mousedown', this._onOptionMouseDown.bind(this));
-
-      this.listboxEl.appendChild(optionEl);
+      this._createOption(option, index)
     });
   }
 
-  // #region htmlCallbacks
+  // #region domCallbacks
 
   // container callbacks
 
@@ -235,7 +227,49 @@ class MultiselectButtons {
     this.inputEl.focus();
   }
 
-  // #endregion htmlCallbacks
+  // #endregion domCallbacks
+
+
+  // #region domManipulation
+
+  /**
+   * @param {string} option
+   * @param {number} index
+   */
+  _createOption(option, index) {
+    const optionEl = document.createElement('div');
+    optionEl.setAttribute('role', 'option');
+    optionEl.id = `${this.idBase}-${index}`;
+    optionEl.className = index === 0 ? 'combo-option option-current' : 'combo-option';
+    optionEl.setAttribute('aria-selected', 'false');
+    optionEl.innerText = option;
+
+    optionEl.addEventListener('click', this._onOptionClick.bind(this, index));
+    optionEl.addEventListener('mousedown', this._onOptionMouseDown.bind(this));
+
+    this.listboxEl.appendChild(optionEl);
+  }
+
+  /**
+   * @param {string} option
+   * @param {number} index
+   */
+  _createOptionButton(option, index) {
+    const listItem = document.createElement('li');
+    const buttonEl = document.createElement('button');
+    buttonEl.className = 'remove-option';
+    buttonEl.type = 'button';
+    buttonEl.id = `${this.idBase}-remove-${index}`;
+    buttonEl.setAttribute('aria-describedby', `${this.idBase}-remove`);
+    buttonEl.addEventListener('click', this.deselectOptionAtAt.bind(this, index));
+    buttonEl.innerHTML = option + ' ';
+
+    listItem.appendChild(buttonEl);
+    this.selectedEl.appendChild(listItem);
+  }
+
+  
+  // #endregion domManipulation 
 
 
   /**
@@ -299,7 +333,7 @@ class MultiselectButtons {
    * @param {number} index 
    */
   selectOptionAt(index) {
-    const selected = this.options[index];
+    const option = this.options[index];
     this.activeIndex = index;
 
     // update aria-selected
@@ -308,17 +342,7 @@ class MultiselectButtons {
     options[index].classList.add('option-selected');
 
     // add remove option button
-    const buttonEl = document.createElement('button');
-    const listItem = document.createElement('li');
-    buttonEl.className = 'remove-option';
-    buttonEl.type = 'button';
-    buttonEl.id = `${this.idBase}-remove-${index}`;
-    buttonEl.setAttribute('aria-describedby', `${this.idBase}-remove`);
-    buttonEl.addEventListener('click', this.deselectOptionAtAt.bind(this, index));
-    buttonEl.innerHTML = selected + ' ';
-
-    listItem.appendChild(buttonEl);
-    this.selectedEl.appendChild(listItem);
+    this._createOptionButton(option, index)
   }
 
   /**

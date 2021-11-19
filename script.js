@@ -145,14 +145,16 @@ class MultiselectButtons {
       optionEl.setAttribute('aria-selected', 'false');
       optionEl.innerText = option;
 
-      optionEl.addEventListener('click', () => { this.onOptionClick(index); });
-      optionEl.addEventListener('mousedown', this.onOptionMouseDown.bind(this));
+      optionEl.addEventListener('click', this._onOptionClick.bind(this, index));
+      optionEl.addEventListener('mousedown', this._onOptionMouseDown.bind(this));
 
       this.listboxEl.appendChild(optionEl);
     });
   }
 
   // #region htmlCallbacks
+
+  // container callbacks
 
   _initCallbacks() {
     this.inputEl.addEventListener('input', this._onInput.bind(this));
@@ -220,6 +222,22 @@ class MultiselectButtons {
     this.updateMenuState(true)
   }
 
+  // option callbacks
+
+  _onOptionMouseDown() {
+    this.ignoreBlur = true;
+  }
+
+  /**
+   * 
+   * @param {number} index 
+   */
+  _onOptionClick(index) {
+    this.onOptionChange(index);
+    this.updateOptionAt(index);
+    this.inputEl.focus();
+  }
+
   // #endregion htmlCallbacks
 
 
@@ -266,20 +284,6 @@ class MultiselectButtons {
    * 
    * @param {number} index 
    */
-  onOptionClick(index) {
-    this.onOptionChange(index);
-    this.updateOptionAt(index);
-    this.inputEl.focus();
-  }
-
-  onOptionMouseDown() {
-    this.ignoreBlur = true;
-  }
-
-  /**
-   * 
-   * @param {number} index 
-   */
   deselectOptionAtAt(index) {
     const option = this.options[index];
 
@@ -313,7 +317,7 @@ class MultiselectButtons {
     buttonEl.type = 'button';
     buttonEl.id = `${this.idBase}-remove-${index}`;
     buttonEl.setAttribute('aria-describedby', `${this.idBase}-remove`);
-    buttonEl.addEventListener('click', () => { this.deselectOptionAtAt(index); });
+    buttonEl.addEventListener('click', this.deselectOptionAtAt.bind(this, index));
     buttonEl.innerHTML = selected + ' ';
 
     listItem.appendChild(buttonEl);

@@ -128,6 +128,7 @@ const maintainScrollVisibility = (activeElement, scrollParent) => {
 }
 
 // TODO: don't pass index when passing option string
+// TODO: rename all combo to multiselect
 
 /*
  * Multiselect Combobox w/ Buttons code
@@ -233,6 +234,78 @@ class MultiselectButtons {
   // #region domManipulation
 
   /**
+   * @param {Element} container
+   */
+  static _createMultiselect(container) {
+    // TODO: jsdoc optional
+    /**
+     * @param {string} type
+     * @param {[string, string][] | undefined} attributes
+     * @param {Element[] | Element | undefined} children
+     */
+    const newEl = (type, attributes = [], children = []) => {
+      const element = document.createElement(type)
+      attributes.forEach(([key, value]) => element.setAttribute(key, value))
+
+      if (typeof children == "string") {
+        element.innerText = children
+      } else {
+        const childrenArr =
+          Array.isArray(children)
+            ? children
+            : [children]
+        childrenArr.forEach(el => element.appendChild(el))
+      }
+      return element;
+    }
+
+    container.appendChild(
+      newEl("span",
+        [["style", "display: none"]]
+        // el.textContent = "remove"
+        , "remove")
+    )
+    container.appendChild(
+      newEl("ul",
+        [["class", "selected-options"]]
+      )
+    )
+    container.appendChild(
+      newEl("div",
+        [["class", "combo js-multi-buttons"]]
+        , [
+          newEl("div",
+            [
+              ["role", "combobox"],
+              ["aria-haspopup", "listbox"],
+              ["aria-expanded", "false"],
+              // TODO: based on ID
+              // ["aria-owns", "listbox2"],
+              ["class", "input-wrapper"],
+            ]
+            , newEl("input",
+              [
+                ["aria-activedescendant", ""],
+                ["aria-autocomplete", "list"],
+                ["aria-labelledby", "combo-label combo-selected"],
+                // ["id", "combo"],
+                ["class", "combo-input"],
+                ["type", "text"],
+              ]
+            )),
+          newEl("div",
+            [
+              ["class", "combo-menu"],
+              ["role", "listbox"],
+              ["aria-multiselectable", "true"],
+              ["id", "listbox2"],
+            ]
+          )
+        ])
+    )
+  }
+
+  /**
    * @param {string} option
    * @param {number} index
    */
@@ -268,7 +341,7 @@ class MultiselectButtons {
     this.selectedEl.appendChild(listItem);
   }
 
-  
+
   // #endregion domManipulation 
 
 
@@ -373,17 +446,20 @@ class MultiselectButtons {
   }
 
   /**
-   * @param {Element} el - The x value.
+   * @param {Element} container - The x value.
    * @param {string[]} options - The y value.
    */
-  constructor(el, options) {
-    this.el = el;
-    this.comboEl = el.querySelector('[role=combobox]');
-    this.inputEl = el.querySelector('input');
-    this.listboxEl = el.querySelector('[role=listbox]');
+  constructor(container, options) {
+    this.container = container;
+    if (!container.childNodes.length)
+      MultiselectButtons._createMultiselect(container)
+    this.el = container.querySelector('.js-multi-buttons');
+    this.comboEl = container.querySelector('[role=combobox]');
+    this.inputEl = container.querySelector('input');
+    this.listboxEl = container.querySelector('[role=listbox]');
+    this.selectedEl = container.querySelector(`.selected-options`);
 
     this.idBase = this.inputEl.id;
-    this.selectedEl = document.getElementById(`${this.idBase}-selected`);
 
     // data
     this.options = options;
@@ -395,8 +471,7 @@ class MultiselectButtons {
   }
 }
 
-
 // init multiselect w/ top buttons
-const multiButtonEl = document.querySelector('.js-multi-buttons');
+const multiButtonEl = document.querySelector('#multiselect');
 const multiButtonComponent = new MultiselectButtons(multiButtonEl, options);
 multiButtonComponent.init();

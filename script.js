@@ -2,6 +2,8 @@
  * Helper constants and functions
  */
 
+// TODO: all strings - classes etc. defined up
+
 // make it easier for ourselves by putting some values in objects
 // in TypeScript, these would be enums
 const Keys = {
@@ -134,13 +136,7 @@ const maintainScrollVisibility = (activeElement, scrollParent) => {
  * Multiselect Combobox w/ Buttons code
  */
 class MultiselectButtons {
-  init() {
-    this._initCallbacks()
 
-    this.options.map((option, index) => {
-      this._createOption(option, index)
-    });
-  }
 
   // #region domCallbacks
 
@@ -160,7 +156,7 @@ class MultiselectButtons {
     // if active option is not in filtered options, set it to first filtered option
     if (this.filteredOptions.indexOf(this.options[this.activeIndex]) < 0) {
       const firstFilteredIndex = this.options.indexOf(this.filteredOptions[0]);
-      this.onOptionChange(firstFilteredIndex);
+      this._onOptionChange(firstFilteredIndex);
     }
 
     const menuState = this.filteredOptions.length > 0;
@@ -196,7 +192,7 @@ class MultiselectButtons {
         event.preventDefault();
         const nextFilteredIndex = getUpdatedIndex(activeFilteredIndex, max, action);
         const nextRealIndex = this.options.indexOf(this.filteredOptions[nextFilteredIndex]);
-        return this.onOptionChange(nextRealIndex);
+        return this._onOptionChange(nextRealIndex);
       case MenuActions.CloseSelect:
         event.preventDefault();
         return this.updateOptionAt(this.activeIndex);
@@ -223,7 +219,7 @@ class MultiselectButtons {
    * @param {number} index 
    */
   _onOptionClick(index) {
-    this.onOptionChange(index);
+    this._onOptionChange(index);
     this.updateOptionAt(index);
     this.inputEl.focus();
   }
@@ -323,6 +319,26 @@ class MultiselectButtons {
     this.listboxEl.appendChild(optionEl);
   }
 
+  // TODO: replace with method that removes specific 
+  _cleanOptions() {
+    this.listboxEl.innerHTML = "";
+    this.selectedEl.innerHTML = "";
+  }
+
+  /**
+   * @param {string[]} options
+   */
+  setOptions(options) {
+    this._cleanOptions()
+
+    this.options = options;
+    this.filteredOptions = options;
+
+    options.map((option, index) => {
+      this._createOption(option, index)
+    });
+  }
+
   /**
    * @param {string} option
    * @param {number} index
@@ -365,10 +381,10 @@ class MultiselectButtons {
   }
 
   /**
-   * 
+   * change focused html option element (arrows movement)
    * @param {number} index 
    */
-  onOptionChange(index) {
+  _onOptionChange(index) {
     this.activeIndex = index;
     this.inputEl.setAttribute('aria-activedescendant', `${this.idBase}-${index}`);
 
@@ -445,11 +461,24 @@ class MultiselectButtons {
     callFocus && this.inputEl.focus();
   }
 
+  setupObserver() {
+    const el = this.container
+    const mutationObserver = new MutationObserver((mutations) => {
+      mutations
+        .filter(x=>x.type === "attributes")
+        .forEach(x=>{
+          if (x.attributeName === "data-options"){
+            this._updateOptions()
+          }
+        })
+    });
+    mutationObserver.observe(el, { attributes: true });
+  }
+
   /**
    * @param {Element} container - The x value.
-   * @param {string[]} options - The y value.
    */
-  constructor(container, options) {
+  constructor(container) {
     this.container = container;
     if (!container.childNodes.length)
       MultiselectButtons._createMultiselect(container)
@@ -459,19 +488,23 @@ class MultiselectButtons {
     this.listboxEl = container.querySelector('[role=listbox]');
     this.selectedEl = container.querySelector(`.selected-options`);
 
+    this.setupObserver();
+
     this.idBase = this.inputEl.id;
 
     // data
-    this.options = options;
-    this.filteredOptions = options;
 
     // state
     this.activeIndex = 0;
     this.open = false;
+
+    this._initCallbacks()
   }
 }
 
 // init multiselect w/ top buttons
 const multiButtonEl = document.querySelector('#multiselect');
-const multiButtonComponent = new MultiselectButtons(multiButtonEl, options);
-multiButtonComponent.init();
+
+const multiButtonComponent = new MultiselectButtons(multiButtonEl);
+multiButtonComponent.setOptions(options)
+

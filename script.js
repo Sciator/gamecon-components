@@ -350,7 +350,7 @@ class MultiselectButtons {
     buttonEl.type = 'button';
     buttonEl.id = `${this.idBase}-remove-${index}`;
     buttonEl.setAttribute('aria-describedby', `${this.idBase}-remove`);
-    buttonEl.addEventListener('click', this.deselectOptionAtAt.bind(this, index));
+    buttonEl.addEventListener('click', this.deselectOptionAt.bind(this, index));
     buttonEl.innerHTML = option + ' ';
 
     listItem.appendChild(buttonEl);
@@ -404,8 +404,12 @@ class MultiselectButtons {
    * 
    * @param {number} index 
    */
-  deselectOptionAtAt(index) {
+  deselectOptionAt(index) {
     const option = this.options[index];
+
+    const ix = this.selected.findIndex(x => x === option);
+    if (ix >= 0)
+      this.selected.splice(ix, 1)
 
     // update aria-selected
     const options = this.el.querySelectorAll('[role=option]');
@@ -415,6 +419,8 @@ class MultiselectButtons {
     // remove button
     const buttonEl = document.getElementById(`${this.idBase}-remove-${index}`);
     this.selectedEl.removeChild(buttonEl.parentElement);
+
+    this._dispatchOnSelectionChanged()
   }
 
   /**
@@ -425,6 +431,9 @@ class MultiselectButtons {
     const option = this.options[index];
     this.activeIndex = index;
 
+    this.selected.push(option)
+    this.selected.sort()
+
     // update aria-selected
     const options = this.el.querySelectorAll('[role=option]');
     options[index].setAttribute('aria-selected', 'true');
@@ -432,6 +441,8 @@ class MultiselectButtons {
 
     // add remove option button
     this._createOptionButton(option, index)
+
+    this._dispatchOnSelectionChanged()
   }
 
   /**
@@ -445,7 +456,7 @@ class MultiselectButtons {
     const isSelected = optionEl.getAttribute('aria-selected') === 'true';
 
     if (isSelected)
-      this.deselectOptionAtAt(index);
+      this.deselectOptionAt(index);
     else
       this.selectOptionAt(index);
 
@@ -461,18 +472,8 @@ class MultiselectButtons {
     callFocus && this.inputEl.focus();
   }
 
-  setupObserver() {
-    const el = this.container
-    const mutationObserver = new MutationObserver((mutations) => {
-      mutations
-        .filter(x=>x.type === "attributes")
-        .forEach(x=>{
-          if (x.attributeName === "data-options"){
-            this._updateOptions()
-          }
-        })
-    });
-    mutationObserver.observe(el, { attributes: true });
+  _dispatchOnSelectionChanged() {
+    this.onSelectionChanged?.([...this.selected])
   }
 
   /**
@@ -488,17 +489,14 @@ class MultiselectButtons {
     this.listboxEl = container.querySelector('[role=listbox]');
     this.selectedEl = container.querySelector(`.selected-options`);
 
-    this.setupObserver();
-
     this.idBase = this.inputEl.id;
 
-    // data
-
-    // state
     this.activeIndex = 0;
     this.open = false;
+    this.selected = [];
 
     this._initCallbacks()
+    this.onSelectionChanged = null
   }
 }
 
@@ -507,4 +505,5 @@ const multiButtonEl = document.querySelector('#multiselect');
 
 const multiButtonComponent = new MultiselectButtons(multiButtonEl);
 multiButtonComponent.setOptions(options)
+multiButtonComponent.onSelectionChanged = (s) => { console.log(s) }
 

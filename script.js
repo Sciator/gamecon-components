@@ -339,6 +339,33 @@ class MultiselectButtons {
     });
   }
 
+  // TODO: all selected manipulation into one region
+  deselectAll() {
+    [...this.selected].forEach(opt => {
+      const index = this.options.findIndex(x => x === opt)
+      if (index === -1) return;
+      this.deselectOptionAt(index);
+    })
+    this.selected = []
+  }
+
+  // TODO: use this everywhere
+  /**
+   * @param {string} opt
+   */
+  _getIndexOf(opt) {
+    return this.options.findIndex(x => x === opt);
+  }
+
+  setSelected(options) {
+    this.deselectAll();
+
+    this.selected = [];
+    options.map(this._getIndexOf.bind(this))
+      .filter(x => x >= 0)
+      .forEach(this.selectOptionAt.bind(this))
+  }
+
   /**
    * @param {string} option
    * @param {number} index
@@ -423,6 +450,7 @@ class MultiselectButtons {
     this._dispatchOnSelectionChanged()
   }
 
+  // TODO: change direction of arrow when opened (animation) ?
   /**
    * 
    * @param {number} index 
@@ -506,4 +534,10 @@ const multiButtonEl = document.querySelector('#multiselect');
 const multiButtonComponent = new MultiselectButtons(multiButtonEl);
 multiButtonComponent.setOptions(options)
 multiButtonComponent.onSelectionChanged = (s) => { console.log(s) }
+
+multiButtonComponent.setSelected(options.slice(0, 5))
+
+// TODO: when no option selected, there can be button with label which opens and focus menu on click
+// TODO: close menu on enter when nothing selected
+// TODO: when using enter to check/uncheck (maybe only when using search) blur select
 

@@ -509,7 +509,7 @@ class MultiselectButtons {
    */
   constructor(container) {
     this.container = container;
-    if (!container.childNodes.length)
+    if (!container.children.length)
       MultiselectButtons._createMultiselect(container)
     this.el = container.querySelector('.js-multi-buttons');
     this.comboEl = container.querySelector('[role=combobox]');

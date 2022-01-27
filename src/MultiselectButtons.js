@@ -152,8 +152,6 @@ const maintainScrollVisibility = (activeElement, scrollParent) => {
  * Multiselect Combobox w/ Buttons code
  */
 class MultiselectButtons {
-
-
   // #region domCallbacks
 
   // container callbacks
@@ -534,3 +532,7 @@ class MultiselectButtons {
 
 // TODO: minify build ... babel compile to ES5 ? 
 // TODO: selec buttons should not be selectable
+
+module.exports = {
+  MultiselectButtons
+}

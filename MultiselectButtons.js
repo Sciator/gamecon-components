@@ -4,8 +4,22 @@
 
 // TODO: all strings - classes etc. defined up
 
-// make it easier for ourselves by putting some values in objects
-// in TypeScript, these would be enums
+const newEl = (type, attributes = [], children = []) => {
+  const element = document.createElement(type)
+  attributes.forEach(([key, value]) => element.setAttribute(key, value))
+
+  if (typeof children == "string") {
+    element.innerText = children
+  } else {
+    const childrenArr =
+      Array.isArray(children)
+        ? children
+        : [children]
+    childrenArr.forEach(el => element.appendChild(el))
+  }
+  return element;
+}
+
 const Keys = {
   Backspace: 'Backspace',
   Clear: 'Clear',
@@ -108,6 +122,8 @@ const getUpdatedIndex = (current, max, action) => {
   }
 }
 
+
+
 // check if an element is currently scrollable
 const isScrollable = (element) => {
   return element && element.clientHeight < element.scrollHeight;
@@ -176,6 +192,9 @@ class MultiselectButtons {
     }
   }
 
+  /**
+   * @param {KeyboardEvent} event
+   */
   _onInputKeyDown(event) {
     const { key } = event;
 
@@ -215,7 +234,6 @@ class MultiselectButtons {
   }
 
   /**
-   * 
    * @param {number} index 
    */
   _onOptionClick(index) {
@@ -233,34 +251,12 @@ class MultiselectButtons {
    * @param {Element} container
    */
   static _createMultiselect(container) {
-    // TODO: jsdoc optional
     /**
      * @param {string} type
-     * @param {[string, string][] | undefined} attributes
-     * @param {Element[] | Element | undefined} children
+     * @param {[string, string][]} [attributes]
+     * @param {Element[] | Element} [children]
      */
-    const newEl = (type, attributes = [], children = []) => {
-      const element = document.createElement(type)
-      attributes.forEach(([key, value]) => element.setAttribute(key, value))
 
-      if (typeof children == "string") {
-        element.innerText = children
-      } else {
-        const childrenArr =
-          Array.isArray(children)
-            ? children
-            : [children]
-        childrenArr.forEach(el => element.appendChild(el))
-      }
-      return element;
-    }
-
-    container.appendChild(
-      newEl("span",
-        [["style", "display: none"]]
-        // el.textContent = "remove"
-        , "remove")
-    )
     container.appendChild(
       newEl("ul",
         [["class", "selected-options"]]
@@ -275,7 +271,7 @@ class MultiselectButtons {
               ["role", "combobox"],
               ["aria-haspopup", "listbox"],
               ["aria-expanded", "false"],
-              // TODO: based on ID
+              // TODO: based on ID - use guid
               // ["aria-owns", "listbox2"],
               ["class", "input-wrapper"],
             ]
@@ -357,6 +353,9 @@ class MultiselectButtons {
     return this.options.findIndex(x => x === opt);
   }
 
+  /**
+   * @param {string[]} options
+   */
   setSelected(options) {
     this.deselectAll();
 
@@ -428,7 +427,6 @@ class MultiselectButtons {
   }
 
   /**
-   * 
    * @param {number} index 
    */
   deselectOptionAt(index) {
@@ -452,7 +450,6 @@ class MultiselectButtons {
 
   // TODO: change direction of arrow when opened (animation) ?
   /**
-   * 
    * @param {number} index 
    */
   selectOptionAt(index) {
@@ -474,7 +471,6 @@ class MultiselectButtons {
   }
 
   /**
-   * 
    * @param {number} index 
    */
   updateOptionAt(index) {
@@ -492,6 +488,10 @@ class MultiselectButtons {
     this.filterOptions('');
   }
 
+  /**
+   * @param {boolean} open
+   * @param {boolean} [callFocus]
+   */
   updateMenuState(open, callFocus = true) {
     this.open = open;
 
@@ -533,3 +533,4 @@ class MultiselectButtons {
 // TODO: when using enter to check/uncheck (maybe only when using search) blur select
 
 // TODO: minify build ... babel compile to ES5 ? 
+// TODO: selec buttons should not be selectable

@@ -5,7 +5,7 @@
 
 // TODO: all strings - classes etc. defined up
 
-import {newEl} from "./utils.js";
+import { newEl } from "../../utils/index.js";
 
 const Keys = {
   Backspace: "Backspace",
@@ -96,16 +96,16 @@ const getIndexByLetter = (options, filter) => {
 // get updated option index
 const getUpdatedIndex = (current, max, action) => {
   switch (action) {
-  case MenuActions.First:
-    return 0;
-  case MenuActions.Last:
-    return max;
-  case MenuActions.Previous:
-    return Math.max(0, current - 1);
-  case MenuActions.Next:
-    return Math.min(max, current + 1);
-  default:
-    return current;
+    case MenuActions.First:
+      return 0;
+    case MenuActions.Last:
+      return max;
+    case MenuActions.Previous:
+      return Math.max(0, current - 1);
+    case MenuActions.Next:
+      return Math.min(max, current + 1);
+    default:
+      return current;
   }
 };
 
@@ -190,22 +190,22 @@ export class MultiselectComponent {
     const action = getActionFromKey(key, this.open);
 
     switch (action) {
-    case MenuActions.Next:
-    case MenuActions.Last:
-    case MenuActions.First:
-    case MenuActions.Previous:
-      event.preventDefault();
-      const nextFilteredIndex = getUpdatedIndex(activeFilteredIndex, max, action);
-      const nextRealIndex = this.options.indexOf(this.filteredOptions[nextFilteredIndex]);
-      return this._onOptionChange(nextRealIndex);
-    case MenuActions.CloseSelect:
-      event.preventDefault();
-      return this.updateOptionAt(this.activeIndex);
-    case MenuActions.Close:
-      event.preventDefault();
-      return this.updateMenuState(false);
-    case MenuActions.Open:
-      return this.updateMenuState(true);
+      case MenuActions.Next:
+      case MenuActions.Last:
+      case MenuActions.First:
+      case MenuActions.Previous:
+        event.preventDefault();
+        const nextFilteredIndex = getUpdatedIndex(activeFilteredIndex, max, action);
+        const nextRealIndex = this.options.indexOf(this.filteredOptions[nextFilteredIndex]);
+        return this._onOptionChange(nextRealIndex);
+      case MenuActions.CloseSelect:
+        event.preventDefault();
+        return this.updateOptionAt(this.activeIndex);
+      case MenuActions.Close:
+        event.preventDefault();
+        return this.updateMenuState(false);
+      case MenuActions.Open:
+        return this.updateMenuState(true);
     }
   }
 
@@ -234,63 +234,13 @@ export class MultiselectComponent {
   // #region domManipulation
 
   /**
-   * @param {Element} container
-   */
-  static _createMultiselect(container) {
-    /**
-     * @param {string} type
-     * @param {[string, string][]} [attributes]
-     * @param {Element[] | Element} [children]
-     */
-
-    container.appendChild(
-      newEl("ul",
-        [["class", "selected-options"]]
-      )
-    );
-    container.appendChild(
-      newEl("div",
-        [["class", "combo js-multi-buttons"]]
-        , [
-          newEl("div",
-            [
-              ["role", "combobox"],
-              ["aria-haspopup", "listbox"],
-              ["aria-expanded", "false"],
-              // TODO: based on ID - use guid
-              // ["aria-owns", "listbox2"],
-              ["class", "input-wrapper"],
-            ]
-            , newEl("input",
-              [
-                ["aria-activedescendant", ""],
-                ["aria-autocomplete", "list"],
-                ["aria-labelledby", "combo-label combo-selected"],
-                // ["id", "combo"],
-                ["class", "combo-input"],
-                ["type", "text"],
-              ]
-            )),
-          newEl("div",
-            [
-              ["class", "combo-menu"],
-              ["role", "listbox"],
-              ["aria-multiselectable", "true"],
-              ["id", "listbox2"],
-            ]
-          )
-        ])
-    );
-  }
-
-  /**
    * @param {string} option
    * @param {number} index
    */
   _createOption(option, index) {
     const optionEl = document.createElement("div");
     optionEl.setAttribute("role", "option");
-    optionEl.id = `${this.idBase}-${index}`;
+    optionEl.id = `${index}`;
     optionEl.className = index === 0 ? "combo-option option-current" : "combo-option";
     optionEl.setAttribute("aria-selected", "false");
     optionEl.innerText = option;
@@ -304,7 +254,8 @@ export class MultiselectComponent {
   // TODO: replace with method that removes specific 
   _cleanOptions() {
     this.listboxEl.innerHTML = "";
-    this.selectedEl.innerHTML = "";
+    if (this.selectedEl)
+      this.selectedEl.innerHTML = "";
   }
 
   /**
@@ -357,12 +308,13 @@ export class MultiselectComponent {
    * @param {number} index
    */
   _createOptionButton(option, index) {
+    if (!this.selectedEl) return;
     const listItem = document.createElement("li");
     const buttonEl = document.createElement("button");
     buttonEl.className = "remove-option";
     buttonEl.type = "button";
     buttonEl.setAttribute("data-index", `${index}`);
-    buttonEl.setAttribute("aria-describedby", `${this.idBase}-remove`);
+    buttonEl.setAttribute("aria-describedby", "remove");
     buttonEl.addEventListener("click", this.deselectOptionAt.bind(this, index));
     buttonEl.innerHTML = option + " ";
 
@@ -400,7 +352,7 @@ export class MultiselectComponent {
    */
   _onOptionChange(index) {
     this.activeIndex = index;
-    this.inputEl.setAttribute("aria-activedescendant", `${this.idBase}-${index}`);
+    this.inputEl.setAttribute("aria-activedescendant", `${index}`);
 
     // update active style
     const options = this.el.querySelectorAll("[role=option]");
@@ -429,9 +381,11 @@ export class MultiselectComponent {
     options[index].setAttribute("aria-selected", "false");
     options[index].classList.remove("option-selected");
 
-    // remove button
-    const buttonEl = this.selectedEl.querySelector(`[data-index='${index}']`);
-    this.selectedEl.removeChild(buttonEl.parentElement);
+    if (this.selectedEl){
+      // remove button
+      const buttonEl = this.selectedEl.querySelector(`[data-index='${index}']`);
+      this.selectedEl.removeChild(buttonEl.parentElement);
+    }
 
     this._dispatchOnSelectionChanged();
   }
@@ -462,7 +416,7 @@ export class MultiselectComponent {
    * @param {number} index 
    */
   updateOptionAt(index) {
-    const option = this.options[index];
+    // const option = this.options[index];
     const optionEls = this.el.querySelectorAll("[role=option]");
     const optionEl = optionEls[index];
     const isSelected = optionEl.getAttribute("aria-selected") === "true";
@@ -498,19 +452,65 @@ export class MultiselectComponent {
   onSelectionChanged = () => { };
 
   /**
-   * @param {Element} container - The x value.
+   * @param {HTMLElement} container - The x value.
+   * @param {HTMLElement} [buttonsContainer] - The x value.
    */
-  constructor(container) {
+  constructor(container, buttonsContainer) {
     this.container = container;
-    if (!container.children.length)
-      MultiselectComponent._createMultiselect(container);
+    this.buttonsContainer = buttonsContainer;
+
+    if (buttonsContainer) {
+      buttonsContainer.innerHTML = "";
+      buttonsContainer.appendChild(
+        newEl("ul",
+          [["class", "selected-options"]]
+        )
+      );
+
+    }
+
+    /** @type {	HTMLUListElement | undefined } */
+    this.selectedEl = buttonsContainer?.querySelector(".selected-options");
+
+    container.innerHTML = "";
+    container.appendChild(
+      newEl("div",
+        [["class", "combo js-multi-buttons"]]
+        , [
+          newEl("div",
+            [
+              ["role", "combobox"],
+              ["aria-haspopup", "listbox"],
+              ["aria-expanded", "false"],
+              // TODO: based on ID - use guid
+              // ["aria-owns", "listbox2"],
+              ["class", "input-wrapper"],
+            ]
+            , newEl("input",
+              [
+                ["aria-activedescendant", ""],
+                ["aria-autocomplete", "list"],
+                ["aria-labelledby", "combo-label combo-selected"],
+                // ["id", "combo"],
+                ["class", "combo-input"],
+                ["type", "text"],
+              ]
+            )),
+          newEl("div",
+            [
+              ["class", "combo-menu"],
+              ["role", "listbox"],
+              ["aria-multiselectable", "true"],
+              ["id", "listbox2"],
+            ]
+          )
+        ])
+    );
+
     this.el = container.querySelector(".js-multi-buttons");
     this.comboEl = container.querySelector("[role=combobox]");
     this.inputEl = container.querySelector("input");
     this.listboxEl = container.querySelector("[role=listbox]");
-    this.selectedEl = container.querySelector(".selected-options");
-
-    this.idBase = this.inputEl.id;
 
     this.activeIndex = 0;
     this.open = false;
@@ -519,6 +519,10 @@ export class MultiselectComponent {
     this._initCallbacks();
   }
 }
+
+
+
+
 
 // TODO: when no option selected, there can be button with label which opens and focus menu on click
 // TODO: close menu on enter when nothing selected

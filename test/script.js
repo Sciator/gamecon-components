@@ -1,21 +1,23 @@
-import {MultiselectComponent} from "../src/MultiselectComponent.js";
+import {MultiselectComponent} from "../src/index.js";
 import {options} from "./options.js";
 
 // init multiselect w/ top buttons
-const multiButtonEl = document.querySelector("#multiselect");
+const multiselectElement = document.querySelector("#multiselect");
+const multiselectButtonElement = document.querySelector("#multiselect-btn");
 
-const multiButtonComponent = new MultiselectComponent(multiButtonEl);
-multiButtonComponent.setOptions(options);
-multiButtonComponent.onSelectionChanged = (s) => { console.log(s); };
+const multiselectComponent = new MultiselectComponent(multiselectElement, multiselectButtonElement);
 
-multiButtonComponent.setSelected(options.slice(0, 5));
+multiselectComponent.setOptions(options);
+multiselectComponent.onSelectionChanged = (s) => { console.log(s); };
+
+multiselectComponent.setSelected(options.slice(0, 5));
 
 // init multiselect w/ top buttons
-const multiButton2El = document.querySelector("#multiselect2");
+const multiselect2El = document.querySelector("#multiselect2");
 
-const multiButton2Component = new MultiselectComponent(multiButton2El);
-multiButton2Component.setOptions(options);
-multiButton2Component.onSelectionChanged = (s) => { console.log(s); };
+const multiselect2Component = new MultiselectComponent(multiselect2El);
+multiselect2Component.setOptions(options);
+multiselect2Component.onSelectionChanged = (s) => { console.log(s); };
 
-multiButton2Component.setSelected(options.slice(0, 5));
+multiselect2Component.setSelected(options.slice(0, 5));
 

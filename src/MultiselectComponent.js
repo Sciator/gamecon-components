@@ -361,7 +361,7 @@ export class MultiselectComponent {
     const buttonEl = document.createElement("button");
     buttonEl.className = "remove-option";
     buttonEl.type = "button";
-    buttonEl.id = `${this.idBase}-remove-${index}`;
+    buttonEl.setAttribute("data-index", `${index}`);
     buttonEl.setAttribute("aria-describedby", `${this.idBase}-remove`);
     buttonEl.addEventListener("click", this.deselectOptionAt.bind(this, index));
     buttonEl.innerHTML = option + " ";
@@ -430,7 +430,7 @@ export class MultiselectComponent {
     options[index].classList.remove("option-selected");
 
     // remove button
-    const buttonEl = document.getElementById(`${this.idBase}-remove-${index}`);
+    const buttonEl = this.selectedEl.querySelector(`[data-index='${index}']`);
     this.selectedEl.removeChild(buttonEl.parentElement);
 
     this._dispatchOnSelectionChanged();

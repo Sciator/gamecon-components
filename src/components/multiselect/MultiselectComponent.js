@@ -1,4 +1,3 @@
-// @ts-check
 /*
  * Helper constants and functions
  */
@@ -39,6 +38,11 @@ const MenuActions = {
 
 // filter an array of options against an input string
 // returns an array of options that begin with the filter string, case-independent
+/**
+ * @param {string[]} options
+ * @param {string} filter
+ * @param {string[]} exclude
+ */
 const filterOptions = (options = [], filter, exclude = []) => {
   return options.filter((option) => {
     const matches = option.toLowerCase().indexOf(filter.toLowerCase()) === 0;
@@ -46,17 +50,21 @@ const filterOptions = (options = [], filter, exclude = []) => {
   });
 };
 
-// return an array of exact option name matches from a comma-separated string
-const findMatches = (options, search) => {
-  const names = search.split(",");
-  return names.map((name) => {
-    const match = options.filter((option) => name.trim().toLowerCase() === option.toLowerCase());
-    return match.length > 0 ? match[0] : null;
-  })
-    .filter((option) => option !== null);
-};
+// // return an array of exact option name matches from a comma-separated string
+// const findMatches = (options, search) => {
+//   const names = search.split(",");
+//   return names.map((name) => {
+//     const match = options.filter((option) => name.trim().toLowerCase() === option.toLowerCase());
+//     return match.length > 0 ? match[0] : null;
+//   })
+//     .filter((option) => option !== null);
+// };
 
 // return combobox action from key press
+/**
+ * @param {string} key
+ * @param {boolean} menuOpen 
+ */
 const getActionFromKey = (key, menuOpen) => {
   // handle opening when closed
   if (!menuOpen && key === Keys.Down) {
@@ -88,12 +96,22 @@ const getActionFromKey = (key, menuOpen) => {
 };
 
 // get index of option that matches a string
+/**
+ * @param {string[]} options
+ * @param {string} filter
+ */
 const getIndexByLetter = (options, filter) => {
   const firstMatch = filterOptions(options, filter)[0];
   return firstMatch ? options.indexOf(firstMatch) : -1;
 };
 
 // get updated option index
+/**
+ * @param {number} current 
+ * @param {number} max 
+ * @param {number} action 
+ * @returns {number}
+ */
 const getUpdatedIndex = (current, max, action) => {
   switch (action) {
     case MenuActions.First:
@@ -112,11 +130,19 @@ const getUpdatedIndex = (current, max, action) => {
 
 
 // check if an element is currently scrollable
+/**
+ * @param {HTMLElement} element 
+ * @returns {boolean}
+ */
 const isScrollable = (element) => {
   return element && element.clientHeight < element.scrollHeight;
 };
 
 // ensure given child element is within the parent's visible scroll area
+/**
+ * @param {HTMLElement} activeElement 
+ * @param {HTMLElement} scrollParent 
+ */
 const maintainScrollVisibility = (activeElement, scrollParent) => {
   const { offsetHeight, offsetTop } = activeElement;
   const { offsetHeight: parentOffsetHeight, scrollTop } = scrollParent;
@@ -275,12 +301,12 @@ export class MultiselectComponent {
 
   // TODO: all selected manipulation into one region
   deselectAll() {
-    [...this.selected].forEach(opt => {
+    this.selected.forEach(opt => {
       const index = this.options.findIndex(x => x === opt);
       if (index === -1) return;
       this.deselectOptionAt(index);
     });
-    this.selected = [];
+    this.selected.splice(0);
   }
 
   // TODO: use this everywhere
@@ -295,9 +321,6 @@ export class MultiselectComponent {
    * @param {string[]} options
    */
   setSelected(options) {
-    this.deselectAll();
-
-    this.selected = [];
     options.map(this._getIndexOf.bind(this))
       .filter(x => x >= 0)
       .forEach(this.selectOptionAt.bind(this));
@@ -355,8 +378,8 @@ export class MultiselectComponent {
     this.inputEl.setAttribute("aria-activedescendant", `${index}`);
 
     // update active style
-    const options = this.el.querySelectorAll("[role=option]");
-    [...options].forEach((optionEl) => {
+    const options = /** @type {HTMLElement[]} */(Array.from(this.el.querySelectorAll("[role=option]")));
+    options.forEach((optionEl) => {
       optionEl.classList.remove("option-current");
     });
     options[index].classList.add("option-current");
@@ -381,10 +404,11 @@ export class MultiselectComponent {
     options[index].setAttribute("aria-selected", "false");
     options[index].classList.remove("option-selected");
 
-    if (this.selectedEl){
+    if (this.selectedEl) {
       // remove button
       const buttonEl = this.selectedEl.querySelector(`[data-index='${index}']`);
-      this.selectedEl.removeChild(buttonEl.parentElement);
+      if (buttonEl?.parentElement)
+        this.selectedEl.removeChild(buttonEl.parentElement);
     }
 
     this._dispatchOnSelectionChanged();
@@ -451,13 +475,22 @@ export class MultiselectComponent {
    */
   onSelectionChanged = () => { };
 
+  /** @type {	HTMLUListElement | undefined } */
+  selectedEl = undefined;
+
   /**
    * @param {HTMLElement} container - The x value.
    * @param {HTMLElement} [buttonsContainer] - The x value.
    */
   constructor(container, buttonsContainer) {
-    this.container = container;
+    /** @type {	HTMLElement } */ this.container = container;
     this.buttonsContainer = buttonsContainer;
+
+    /** @type {string[]} */ this.options = [];
+    /** @type {string[]} */ this.filteredOptions = [];
+    /** @type {string[]} */ this.selected = [];
+    /** @type {number}   */ this.activeIndex = 0;
+    /** @type {boolean}  */ this.open = false;
 
     if (buttonsContainer) {
       buttonsContainer.innerHTML = "";
@@ -469,52 +502,54 @@ export class MultiselectComponent {
 
     }
 
-    /** @type {	HTMLUListElement | undefined } */
-    this.selectedEl = buttonsContainer?.querySelector(".selected-options");
+    this.selectedEl = buttonsContainer?.querySelector(".selected-options") ?? undefined;
+
+    this.inputEl = newEl("input",
+      [
+        ["aria-activedescendant", ""],
+        ["aria-autocomplete", "list"],
+        ["aria-labelledby", "combo-label combo-selected"],
+        // ["id", "combo"],
+        ["class", "combo-input"],
+        ["type", "text"],
+      ]
+    );
+
+    this.listboxEl = newEl("div",
+      [
+        ["class", "combo-menu"],
+        ["role", "listbox"],
+        ["aria-multiselectable", "true"],
+        ["id", "listbox2"],
+      ]
+    );
+
+    this.comboEl = newEl("div",
+      [
+        ["role", "combobox"],
+        ["aria-haspopup", "listbox"],
+        ["aria-expanded", "false"],
+        // TODO: based on ID - use guid
+        // ["aria-owns", "listbox2"],
+        ["class", "input-wrapper"],
+      ]
+      ,
+      this.inputEl,
+    );
+
+    this.el = newEl("div",
+      [["class", "combo js-multi-buttons"]]
+      , [
+        this.comboEl,
+        this.listboxEl
+      ]);
+
 
     container.innerHTML = "";
     container.appendChild(
-      newEl("div",
-        [["class", "combo js-multi-buttons"]]
-        , [
-          newEl("div",
-            [
-              ["role", "combobox"],
-              ["aria-haspopup", "listbox"],
-              ["aria-expanded", "false"],
-              // TODO: based on ID - use guid
-              // ["aria-owns", "listbox2"],
-              ["class", "input-wrapper"],
-            ]
-            , newEl("input",
-              [
-                ["aria-activedescendant", ""],
-                ["aria-autocomplete", "list"],
-                ["aria-labelledby", "combo-label combo-selected"],
-                // ["id", "combo"],
-                ["class", "combo-input"],
-                ["type", "text"],
-              ]
-            )),
-          newEl("div",
-            [
-              ["class", "combo-menu"],
-              ["role", "listbox"],
-              ["aria-multiselectable", "true"],
-              ["id", "listbox2"],
-            ]
-          )
-        ])
+      this.el
     );
 
-    this.el = container.querySelector(".js-multi-buttons");
-    this.comboEl = container.querySelector("[role=combobox]");
-    this.inputEl = container.querySelector("input");
-    this.listboxEl = container.querySelector("[role=listbox]");
-
-    this.activeIndex = 0;
-    this.open = false;
-    this.selected = [];
 
     this._initCallbacks();
   }

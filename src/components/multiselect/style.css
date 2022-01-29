@@ -14,7 +14,6 @@ body {
 .combo {
   display: block;
   /* margin-bottom: 1.5em; */
-  /* max-width: 400px; */
   position: relative;
 }
 
@@ -119,7 +118,6 @@ select.combo-input {
 .selected-options {
   list-style-type: none;
   margin: 0;
-  max-width: 400px;
   padding: 0;
 }
 

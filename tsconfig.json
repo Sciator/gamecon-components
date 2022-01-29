@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "noEmit": true,
+    "module": "CommonJS",
+    "rootDir": "./src",
+    "strict": true,
+    "checkJs": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "scripts", "test"]
+}

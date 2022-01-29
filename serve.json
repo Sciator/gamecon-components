@@ -1,5 +1,8 @@
 {
+  "directoryListing":false,
+  "cleanUrls": false,
   "rewrites": [
-    { "source": "", "destination": "test/index.html" }
-  ] 
+    { "source": "", "destination": "./test/index.html" },
+    { "source": "/build/**/*![.css]", "destination":"/build/" }
+  ]
 }

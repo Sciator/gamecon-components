@@ -1,4 +1,4 @@
-var options = [
+export const options = [
   "100",
   "13th",
   "13th Age",
@@ -342,4 +342,4 @@ var options = [
   "Žánr: Tragédie",
   "Žánr: Urbanfantasy",
   "Žánr: Western",
-  "žánrovka"]
+  "žánrovka"];

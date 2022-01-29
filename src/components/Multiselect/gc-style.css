@@ -1,0 +1,38 @@
+/* TODO: hover, border etc. */
+
+button {
+  text-transform : uppercase;
+  font-size      : 12px;
+  font-weight    : bold;
+  letter-spacing : 0.15em;
+  text-decoration: none;
+  color          : inherit;
+
+  display     : block;
+  position    : relative;
+  width       : 156px;
+  margin-right: 16px;
+  height      : 48px;
+  line-height : 48px;
+  text-align  : center;
+  background  : #fff;
+  border      : solid 1px #FDC689;
+
+  @media (max-width: 800px) {
+    margin   : 0 10px 10px 0;
+    width    : 130px;
+    flex-grow: 1;
+  }
+}
+
+.selected-options {
+  height     : 57px;
+  white-space: nowrap;
+  overflow   : hidden;
+}
+
+
+.remove-option::before,
+.remove-option::after {
+  border-right: 2px solid #000;
+}

@@ -3,7 +3,7 @@
  * @param {T | T[]} arrLike
  * @returns {T[]}
  */
-export const asArray = (arrLike) =>{
+export const asArray = (arrLike) => {
   return Array.isArray(arrLike)
     ? arrLike
     : [arrLike];
@@ -26,4 +26,42 @@ export const newEl = (type, attributes = [], children = []) => {
     asArray(children).forEach(el => element.appendChild(el));
   }
   return element;
+};
+
+/**
+ * @type {{
+ *   (...args: [max: number] | [min: number, max: number, step?: number]): number[];
+ * }}
+*/
+// @ts-ignore
+export const range = (n, n1, step = 1) =>
+  Array.from(
+    Array(
+      (n1 === undefined)
+        ? n
+        : Math.max(Math.ceil((n1 - n) / step), 0)
+    ).keys())
+    .map((n1 === undefined) ? (x => x) : (x => (x * step + n)))
+  ;
+
+/**
+ * Returns unique values only 
+ */
+export const distinct = /** @type {{ (input: number[]) : number[]; (input: string[]) : string[]; }} */((arr) =>
+  Array.from(new Set(/** @type {any} */(arr))));
+
+/**
+ * @template T, T1
+ * @param {T[]} arr
+ * @param {T1[]} arr1
+ * @returns {[T, T1][]}
+ */
+export const zip = (arr, arr1) =>{
+  const len = Math.max(arr.length, arr1.length);
+  /** @type {[T, T1][]} */
+  const newArr = Array(len);
+  for (let i = len;i--;) {
+    newArr[i] = [arr[i], arr1[i]];
+  }
+  return newArr;
 };

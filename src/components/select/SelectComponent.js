@@ -52,8 +52,6 @@ export class SelectComponent {
    * @private 
    */
   _renderOptions() {
-    this._selectEl.innerHTML = "";
-
     /** @param {Option} opt */const createOption =
       (opt) => newEl("option", [["value", opt.value]], `${opt.label}`);
     /** @param {OptGroup} optgroup */const createOptGroup =
@@ -64,6 +62,7 @@ export class SelectComponent {
     /** @param {Option | OptGroup} opt */const createOptionOrGroup =
       (opt) => isOption(opt) ? createOption(opt) : createOptGroup(opt);
 
+    this._selectEl.innerHTML = "";
     this._selectEl.append(...this._optionsTree.map(createOptionOrGroup));
   }
 

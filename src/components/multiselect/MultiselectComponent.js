@@ -95,15 +95,15 @@ const getActionFromKey = (key, menuOpen) => {
   }
 };
 
-// get index of option that matches a string
-/**
- * @param {string[]} options
- * @param {string} filter
- */
-const getIndexByLetter = (options, filter) => {
-  const firstMatch = filterOptions(options, filter)[0];
-  return firstMatch ? options.indexOf(firstMatch) : -1;
-};
+// // get index of option that matches a string
+// /**
+//  * @param {string[]} options
+//  * @param {string} filter
+//  */
+// const getIndexByLetter = (options, filter) => {
+//   const firstMatch = filterOptions(options, filter)[0];
+//   return firstMatch ? options.indexOf(firstMatch) : -1;
+// };
 
 // get updated option index
 /**
@@ -219,11 +219,12 @@ export class MultiselectComponent {
       case MenuActions.Next:
       case MenuActions.Last:
       case MenuActions.First:
-      case MenuActions.Previous:
+      case MenuActions.Previous: {
         event.preventDefault();
         const nextFilteredIndex = getUpdatedIndex(activeFilteredIndex, max, action);
         const nextRealIndex = this.options.indexOf(this.filteredOptions[nextFilteredIndex]);
         return this._onOptionChange(nextRealIndex);
+      }
       case MenuActions.CloseSelect:
         event.preventDefault();
         return this.updateOptionAt(this.activeIndex);

@@ -1,4 +1,4 @@
-import { CheckboxComponent, MultiselectComponent, SelectComponent } from "../src/index.js";
+import { CheckboxComponent, TimetableComponent, MultiselectComponent, newEl, SelectComponent } from "../src/index.js";
 import { options } from "./options.js";
 
 // init multiselect w/ top buttons
@@ -26,7 +26,7 @@ multiselect2Component.setSelected(options.slice(0, 5));
 const selectElement = document.querySelector("#select");
 const selectCoponent = new SelectComponent(selectElement);
 
-selectCoponent.onSelectionChanged = (v) => { console.log(v) };
+selectCoponent.onSelectionChanged = (v) => { console.log(v); };
 
 selectCoponent.setOptions([
   { value: 2019, label: "Rok 2019" },
@@ -50,3 +50,21 @@ const chechboxComponent = new CheckboxComponent(checkboxElement);
 chechboxComponent.onChanged = (b) => console.log(b);
 
 chechboxComponent.setChecked(true);
+
+
+const timetableElement = document.querySelector("#grid");
+const timetableComponent = new TimetableComponent(timetableElement);
+
+// timetableComponent.setCells(range(10).map(x => ({ element: newEl("div", [], `x:${x}`), rect: { x: 0, y: x } })));
+
+timetableComponent.setTimeRange({ from: 8, to: 21 });
+timetableComponent.setGroups(["Epic", "Wargaming", "Deskoherna"]);
+timetableComponent.setCells([
+  {
+    element: newEl("div", [["style", "background-color: gray"]], "WG 11-12"), group: "Wargaming", time: { from: 11, to: 12 }
+  },
+  {
+    element: newEl("div", [["style", "background-color: gray"]], "WG 11-12"), group: "Wargaming", time: { from: 11, to: 12 }
+  },
+]);
+

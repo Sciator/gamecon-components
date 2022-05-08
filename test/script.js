@@ -1,4 +1,4 @@
-import { CheckboxComponent, TimetableComponent, MultiselectComponent, newEl, SelectComponent } from "../src/index.js";
+import { CheckboxComponent, TimetableComponent, createTimetableComponentCell, MultiselectComponent, newEl, SelectComponent } from "../src/index.js";
 import { options } from "./options.js";
 
 // init multiselect w/ top buttons
@@ -52,7 +52,7 @@ chechboxComponent.onChanged = (b) => console.log(b);
 chechboxComponent.setChecked(true);
 
 
-const timetableElement = document.querySelector("#grid");
+const timetableElement = document.querySelector("#table");
 const timetableComponent = new TimetableComponent(timetableElement);
 
 // timetableComponent.setCells(range(10).map(x => ({ element: newEl("div", [], `x:${x}`), rect: { x: 0, y: x } })));
@@ -60,14 +60,11 @@ const timetableComponent = new TimetableComponent(timetableElement);
 timetableComponent.setTimeRange({ from: 8, to: 21 });
 timetableComponent.setGroups(["Epic", "Wargaming", "Deskoherna"]);
 timetableComponent.setCells([
-  {
-    element: newEl("div", [["style", "background-color: gray"]], "WG 11-12"), group: "Wargaming", time: { from: 9, to: 13 }
-  },
-  {
-    element: newEl("div", [["style", "background-color: gray"]], "WG 11-12"), group: "Wargaming", time: { from: 13, to: 23 }
-  },
-  {
-    element: newEl("div", [["style", "background-color: gray"]], "WG 11-12"), group: "Wargaming", time: { from: 9, to: 13 }
-  },
+  createTimetableComponentCell("Wargaming", { from: 12, to: 15 }, {status:"vDalsiVlne"}),
+  createTimetableComponentCell("Wargaming", { from: 15, to: 16 }, {status:"plno"}),
+  createTimetableComponentCell("Wargaming", { from: 12, to: 15 }, {status:"organizator"}),
+  createTimetableComponentCell("Epic", { from: 12, to: 15 }, {status:"vDalsiVlne"}),
+  createTimetableComponentCell("Epic", { from: 12, to: 15 }, {status:"nahradnik"}),
 ]);
 
+timetableComponent.setGroups(["Epic", "Wargaming", "Deskoherna"]);

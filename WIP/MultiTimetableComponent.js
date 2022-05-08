@@ -1,7 +1,7 @@
 
 // TODO: WIP
 
-import { distinct, newEl, range, zip } from "../../index.js";
+import { newEl, zip } from "../../index.js";
 import { TimetableComponent } from "./TimetableComponent";
 
 /**

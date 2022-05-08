@@ -15,30 +15,36 @@ import { distinct, newEl, range, zip } from "../../index.js";
  */
 
 /**
- * @param {TimeRange} timeRange 
+ * @typedef {"vDalsiVlne"|"vBudoucnu"|"plno"|"prihlasen"|"nahradnik"|"organizator"} ActivityStatus
  */
-const generateGridTemplateColumns = (timeRange) => {
-  return ""
-    + "[linie] auto "
-    + "["
-    + range(timeRange.from, timeRange.to).map(x => `time-${x}] 1fr [time-${x}-end`).join(" ")
-    + ` time-${timeRange.to}]`;
-};
 
 /**
- * @param {string[]} groups 
- * @param {number[]} tracks 
+ * @param {string} group
+ * @param {TimeRange} time
+ * @param {object} activity
+ * @param {ActivityStatus} activity.status
+ * @param {number} activity.id
+ * @param {string} activity.title
+ * @returns {Cell}
  */
-const generateGridTemplateRows = (groups, tracks) => {
-  return ""
-    + "auto "
-    + "["
-    + zip(groups, tracks).map(
-      ([group, track]) =>
-        range(track + 1).map(() => `group-${group}] 1fr [group-${group}-end`).join(" ")
-    ).join(" ")
-    + "]"
-  ;
+export const createCell = (group, time, activity) => {
+  const element = newEl("div", { class: activity?.status }, [
+    newEl("a", {
+      href: "https://2021.gamecon.cz/turnaje#starnet-fotbal",
+      target: "_blank",
+      class: "programNahled_odkaz",
+      "data-program-nahled-id": `${activity.id ?? -1}`,
+      title: activity.title ?? "",
+    }, activity.title ?? ""),
+    newEl("span", { class: "program_obsazenost" },
+      // TODO: podle pohlaví  <span class="program_obsazenost"> <span class="f">(1/2)</span> <span class="m">(5/5)</span></span>
+      newEl("span", { class: "neprihlasovatelna" },
+        "(0/24)"
+      )
+    )
+  ]);
+
+  return { element, group, time };
 };
 
 
@@ -67,12 +73,16 @@ const getTracks = (timeRanges) => {
 };
 
 /**
+ * Track is table row relative to given group. For example cell with track 3 will be at table row where its group starting + 3
  * @param {Cell[]} cells
- * @returns {number[]}
+ * @returns {{tracks: number[], groupTracksLen: Record<string, number>}}
  */
 const getTracksForCells = (cells) => {
   const groups = distinct(cells.map(x => x.group)).sort();
+  /** @type {number[]} */
   const tracks = Array(cells.length);
+  /** @type {Record<string, number>} */
+  const groupTracksLen = {};
   for (let gi = 0; gi < groups.length; gi++) {
     const group = groups[gi];
     const cellsWIndex = cells.map((cell, index) => ({ index, cell })).filter(({ cell }) => cell.group === group);
@@ -81,24 +91,70 @@ const getTracksForCells = (cells) => {
     zip(cellsWIndex, groupTracks).forEach(([{ index }, track]) => {
       tracks[index] = track;
     });
+    groupTracksLen[group] = Math.max(...groupTracks);
   }
-  return tracks;
+  return { tracks, groupTracksLen };
 };
 
 /**
- * @param {string[]} groups
- * @param {Cell[]} cells
- * @returns {number[]}
+ * @typedef {object} StructureCell
+ * @property {number} [span]
+ * @property {(Node|string)} [content]
+ * @property {true} [header]
  */
-const getTracksForGroups = (groups, cells) => {
-  const groupTracks = Array(groups.length);
-  for (let gi = 0; gi < groups.length; gi++) {
-    const group = groups[gi];
-    const cellTracks = getTracks(cells.filter(x => x.group === group).map(x => x.time));
-    groupTracks[gi] = Math.max(...cellTracks, 0);
+
+/**
+ * 
+ * @param {Cell[]} cells
+ * @param {string[]} groups
+ * @param {TimeRange} timeRange
+ * @return {StructureCell[][]}
+ */
+const getTableStructure = (cells, groups, timeRange) => {
+  /** @type {StructureCell[][]} */
+  const table = [];
+
+  const { tracks, groupTracksLen } = getTracksForCells(cells);
+
+  {
+    /** @type {StructureCell[]} */
+    const headerRow = [{}];
+    range(timeRange.from, timeRange.to + 1)
+      .forEach(x => headerRow.push({ content: `${x}` }));
+    table.push(headerRow);
   }
-  return groupTracks;
+
+  groups.forEach(group => {
+    const maxTrack = groupTracksLen[group] || 0;
+    range(maxTrack + 1).map(track => {
+      /** @type {({span?:number, content?:Node|string, header?: true})[]} */
+      const row = track ? [] : [{ content: group, span: maxTrack + 1, header: true }];
+      const c = zip(cells, tracks)
+        .filter(([, t]) => t === track)
+        .map(([cell]) => cell)
+        .filter(cell => cell.group === group)
+        .sort((a, b) => a.time.from - b.time.from)
+        ;
+      range(timeRange.from, timeRange.to + 1).forEach(t => {
+        if (c[0] && c[0].time.to <= t) c.splice(0, 1);
+        const cell = c[0];
+        if (cell) {
+          if (cell.time.from === t) {
+            row.push({ span: cell.time.to - cell.time.from, content: cell.element });
+          } else if (cell.time.from > t) {
+            row.push({});
+          }
+        } else {
+          row.push({});
+        }
+      });
+      table.push(row);
+    });
+  });
+
+  return table;
 };
+
 
 export class TimetableComponent {
   /** @private */_cells = /** @type {Cell[]} */([]);
@@ -107,77 +163,63 @@ export class TimetableComponent {
 
   /**
    * @private
-   * @param {string} className
    */
-  _removeChildType(className) {
-    Array.from(this._gridEl.querySelectorAll(`:scope > .${className}`)).forEach(x => x.remove());
+  _render() {
+    const rowsStructure = getTableStructure(this._cells, this._groups, this._timeRange);
+
+    const rows = rowsStructure.map((r, i) =>
+      newEl("tr", {},
+        r.map(
+          c => !c?.header
+            // Normal cell  
+            ? (
+              newEl(
+                i ? "td" : "th",
+                c?.span ? { colspan: `${c.span}` } : {},
+                c.content
+              )
+            )
+            // Left header
+            : (
+              newEl(
+                i ? "td" : "th",
+                { rowspan: `${c?.span || 1}` },
+                newEl("div", { class: "program_nazevLinie" },
+                  c.content
+                )
+              )
+
+            )
+        ).filter(x => x)
+      ));
+
+    const fullTable = newEl("div", { "class": "programNahled_obalProgramu" }, [
+      newEl("div", { "class": "programPosuv_obal2" }, [
+        newEl("div", { "class": "programPosuv_obal" }, [
+          newEl("table", { "class": "program" }, [
+            newEl("tbody", { "class": "program" }, rows)
+          ])
+        ]),
+        newEl("div", { "class": "programPosuv_posuv programPosuv_lposuv", style: "display: none;" }, [
+          newEl("div")
+        ]),
+        newEl("div", { "class": "programPosuv_posuv programPosuv_rposuv", style: "display: none;" }, [
+          newEl("div")
+        ])
+      ])
+    ]);
+
+    // TODO: don't clear whole container, clear only tbody
+    Array.from(this._container.children).forEach(e => this._container.removeChild(e));
+    this._container.appendChild(fullTable);
   }
-
-  /** 
-   * @private 
-   */
-  _renderCells() {
-    /** 
-     * @param {Cell} cell
-     * @param {number} track
-     */
-    const renderCell = (cell, track) => newEl("div", [
-      ["class", "cell"],
-      ["style", `grid-row: group-${cell.group} ${track + 1}; grid-column: time-${cell.time.from} / time-${cell.time.to}-end`]
-    ], cell.element);
-
-    const tracks = getTracksForCells(this._cells);
-
-    this._removeChildType("cell");
-    this._gridEl.append(...zip(this._cells, tracks).map(([cell, track]) => renderCell(cell, track)));
-  }
-
-  /**
-   * @private
-   */
-  _rednderTimeRange() {
-    /** @param {number} time */
-    const renderTime = (time) => newEl("div", [
-      ["class", `time time-label-${time}`],
-      ["style", `grid-column: time-${time};`]
-    ], `${time}:00`);
-
-    const cols = generateGridTemplateColumns(this._timeRange);
-    const colElements = range(this._timeRange.from, this._timeRange.to).map(renderTime);
-
-    this._removeChildType("time");
-    console.log(cols);
-    this._gridEl.style.gridTemplateColumns = cols;
-    this._gridEl.append(...colElements);
-  }
-
-  /**
-   * @private
-   */
-  _renderGroups() {
-    /** @param {string} group */
-    const renderGroup = (group) => newEl("div", [
-      ["class", `group group-label-${group}`],
-      ["style", `grid-row: group-${group} / group-${group}-end -1;`]
-    ], `${group}`);
-
-    const tracks = getTracksForGroups(this._groups, this._cells);
-    const cols = generateGridTemplateRows(this._groups, tracks);
-    const colElements = this._groups.map(x => renderGroup(x));
-
-    this._removeChildType("group");
-    this._gridEl.style.gridTemplateRows = cols;
-    this._gridEl.append(...colElements);
-  }
-
-  container() {return this._container;}
 
   /**
    * @param {TimeRange} range 
    */
   setTimeRange(range) {
     this._timeRange = range;
-    this._rednderTimeRange();
+    this._render();
   }
 
   /**
@@ -185,7 +227,7 @@ export class TimetableComponent {
    */
   setGroups(groups) {
     this._groups = groups;
-    this._renderGroups();
+    this._render();
   }
 
 
@@ -196,8 +238,7 @@ export class TimetableComponent {
     this._cells = cells;
     cells.filter(x => x.time.from > x.time.to).forEach(c => c.time.to += 24);
 
-    this._renderCells();
-    this._renderGroups();
+    this._render();
   }
 
   setTime() {

@@ -23,9 +23,15 @@
             <td></td>
             <!-- rowspan = Počet sloupců, vžy pouze první řádek dané linie obsahuje nazev -->
             <td colspan="8">
-              <div class="vDalsiVlne"><a href="https://2021.gamecon.cz/turnaje#starnet-fotbal" target="_blank"
-                  class="programNahled_odkaz" data-program-nahled-id="4028" title="Starnet fotbalový turnaj">Starnet
-                  fotbalový turnaj</a><span class="program_obsazenost"> <span
+              <div class="vDalsiVlne">
+                <a 
+                  href="https://2021.gamecon.cz/turnaje#starnet-fotbal" 
+                  target="_blank"
+                  class="programNahled_odkaz" 
+                  data-program-nahled-id="4028" 
+                  title="Starnet fotbalový turnaj"
+                >Starnet fotbalový turnaj</a>
+                <span class="program_obsazenost"> <span
                     class="neprihlasovatelna">(0/24)</span></span> </div>
             </td>
             <td></td>

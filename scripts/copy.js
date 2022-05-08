@@ -6,7 +6,7 @@ if (process.platform !== "win32") {
 }
 
 const source = "./src";
-const target = "C:\\wamp64\\www\\gamecon\\web\\soubory\\blackarrow\\_komponenty\\multiselect";
+const target = "C:\\wamp64\\www\\gamecon\\web\\soubory\\blackarrow\\_komponenty";
 
 /**
  * @param {string} src  The path to the thing to copy.
@@ -29,6 +29,7 @@ var copyRecursiveSync = function (src, dest) {
   }
 };
 
+fs.rmdirSync(target, {recursive: true});
 copyRecursiveSync(source, target);
 
 

@@ -35,7 +35,7 @@ const generateGridTemplateRows = (groups, tracks) => {
     + "["
     + zip(groups, tracks).map(
       ([group, track]) =>
-        range(track+1).map(() => `group-${group}] 1fr [group-${group}-end`).join(" ")
+        range(track + 1).map(() => `group-${group}] 1fr [group-${group}-end`).join(" ")
     ).join(" ")
     + "]"
   ;
@@ -100,12 +100,10 @@ const getTracksForGroups = (groups, cells) => {
   return groupTracks;
 };
 
-
 export class TimetableComponent {
   /** @private */_cells = /** @type {Cell[]} */([]);
   /** @private */_timeRange =  /** @type {TimeRange} */({ from: 0, to: 24 });
   /** @private */_groups = /** @type {string[]} */([]);
-
 
   /**
    * @private
@@ -153,6 +151,9 @@ export class TimetableComponent {
     this._gridEl.append(...colElements);
   }
 
+  /**
+   * @private
+   */
   _renderGroups() {
     /** @param {string} group */
     const renderGroup = (group) => newEl("div", [
@@ -163,12 +164,13 @@ export class TimetableComponent {
     const tracks = getTracksForGroups(this._groups, this._cells);
     const cols = generateGridTemplateRows(this._groups, tracks);
     const colElements = this._groups.map(x => renderGroup(x));
-    
+
     this._removeChildType("group");
     this._gridEl.style.gridTemplateRows = cols;
     this._gridEl.append(...colElements);
   }
 
+  container() {return this._container;}
 
   /**
    * @param {TimeRange} range 
@@ -192,6 +194,7 @@ export class TimetableComponent {
    */
   setCells(cells) {
     this._cells = cells;
+    cells.filter(x => x.time.from > x.time.to).forEach(c => c.time.to += 24);
 
     this._renderCells();
     this._renderGroups();
@@ -206,7 +209,7 @@ export class TimetableComponent {
    */
   constructor(container) {
     /** @private */this._container = container;
-    /** @private */this._gridEl = newEl("div", [["style", "display: grid;"]]);
+    /** @private */this._gridEl = newEl("div", [["style", "display: grid; grid-auto-columns: minmax(0, 1fr); grid-auto-flow: column;"]]);
     this._container.innerHTML = "";
     this._container.appendChild(this._gridEl);
 

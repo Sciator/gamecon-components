@@ -61,10 +61,13 @@ timetableComponent.setTimeRange({ from: 8, to: 21 });
 timetableComponent.setGroups(["Epic", "Wargaming", "Deskoherna"]);
 timetableComponent.setCells([
   {
-    element: newEl("div", [["style", "background-color: gray"]], "WG 11-12"), group: "Wargaming", time: { from: 11, to: 12 }
+    element: newEl("div", [["style", "background-color: gray"]], "WG 11-12"), group: "Wargaming", time: { from: 9, to: 13 }
   },
   {
-    element: newEl("div", [["style", "background-color: gray"]], "WG 11-12"), group: "Wargaming", time: { from: 11, to: 12 }
+    element: newEl("div", [["style", "background-color: gray"]], "WG 11-12"), group: "Wargaming", time: { from: 13, to: 23 }
+  },
+  {
+    element: newEl("div", [["style", "background-color: gray"]], "WG 11-12"), group: "Wargaming", time: { from: 9, to: 13 }
   },
 ]);
 

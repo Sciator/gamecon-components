@@ -227,7 +227,7 @@ export class MultiselectComponent {
       }
       case MenuActions.CloseSelect:
         event.preventDefault();
-        return this.updateOptionAt(this.activeIndex);
+        return this.flipOptionAt(this.activeIndex);
       case MenuActions.Close:
         event.preventDefault();
         return this.updateMenuState(false);
@@ -251,7 +251,7 @@ export class MultiselectComponent {
    */
   _onOptionClick(index) {
     this._onOptionChange(index);
-    this.updateOptionAt(index);
+    this.flipOptionAt(index);
     this.inputEl.focus();
   }
 
@@ -346,6 +346,46 @@ export class MultiselectComponent {
     this.selectedEl.appendChild(listItem);
   }
 
+  /**
+   * @param {number} index 
+   */
+  _deselectOptionAt(index) {
+    // update aria-selected
+    const options = this.el.querySelectorAll("[role=option]");
+    options[index].setAttribute("aria-selected", "false");
+    options[index].classList.remove("option-selected");
+  }
+
+  /**
+   * @param {number} index 
+   */
+  _selectOptionAt(index) {
+    // update aria-selected
+    const options = this.el.querySelectorAll("[role=option]");
+    options[index].setAttribute("aria-selected", "true");
+    options[index].classList.add("option-selected");
+  }
+
+  /**
+   * change focused html option element (arrows movement)
+   * @param {number} index 
+   */
+  _onOptionChange(index) {
+    this.activeIndex = index;
+    this.inputEl.setAttribute("aria-activedescendant", `${index}`);
+
+    // update active style
+    const options = /** @type {HTMLElement[]} */(
+      Array.from(this.el.querySelectorAll("[role=option]")));
+    options.forEach((optionEl) => {
+      optionEl.classList.remove("option-current");
+    });
+    options[index].classList.add("option-current");
+
+    if (this.open && isScrollable(this.listboxEl)) {
+      maintainScrollVisibility(options[index], this.listboxEl);
+    }
+  }
 
   // #endregion domManipulation 
 
@@ -371,23 +411,11 @@ export class MultiselectComponent {
   }
 
   /**
-   * change focused html option element (arrows movement)
-   * @param {number} index 
+   * @param {string} option 
    */
-  _onOptionChange(index) {
-    this.activeIndex = index;
-    this.inputEl.setAttribute("aria-activedescendant", `${index}`);
-
-    // update active style
-    const options = /** @type {HTMLElement[]} */(Array.from(this.el.querySelectorAll("[role=option]")));
-    options.forEach((optionEl) => {
-      optionEl.classList.remove("option-current");
-    });
-    options[index].classList.add("option-current");
-
-    if (this.open && isScrollable(this.listboxEl)) {
-      maintainScrollVisibility(options[index], this.listboxEl);
-    }
+  isSelected(option) {
+    const ix = this.selected.findIndex(x => x === option);
+    return (ix !== -1);
   }
 
   /**
@@ -397,13 +425,12 @@ export class MultiselectComponent {
     const option = this.options[index];
 
     const ix = this.selected.findIndex(x => x === option);
-    if (ix >= 0)
-      this.selected.splice(ix, 1);
+    if (ix === -1)
+      return;
 
-    // update aria-selected
-    const options = this.el.querySelectorAll("[role=option]");
-    options[index].setAttribute("aria-selected", "false");
-    options[index].classList.remove("option-selected");
+    this.selected.splice(ix, 1);
+
+    this._deselectOptionAt(index);
 
     if (this.selectedEl) {
       // remove button
@@ -417,19 +444,18 @@ export class MultiselectComponent {
 
   // TODO: change direction of arrow when opened (animation) ?
   /**
-   * @param {number} index 
+   * @param {number} index
    */
   selectOptionAt(index) {
     const option = this.options[index];
     this.activeIndex = index;
 
+    if (this.isSelected(option)) return;
+
     this.selected.push(option);
     this.selected.sort();
 
-    // update aria-selected
-    const options = this.el.querySelectorAll("[role=option]");
-    options[index].setAttribute("aria-selected", "true");
-    options[index].classList.add("option-selected");
+    this._selectOptionAt(index);
 
     // add remove option button
     this._createOptionButton(option, index);
@@ -440,7 +466,7 @@ export class MultiselectComponent {
   /**
    * @param {number} index 
    */
-  updateOptionAt(index) {
+  flipOptionAt(index) {
     // const option = this.options[index];
     const optionEls = this.el.querySelectorAll("[role=option]");
     const optionEl = optionEls[index];
@@ -500,7 +526,6 @@ export class MultiselectComponent {
           [["class", "selected-options"]]
         )
       );
-
     }
 
     this.selectedEl = buttonsContainer?.querySelector(".selected-options") ?? undefined;
@@ -556,14 +581,8 @@ export class MultiselectComponent {
   }
 }
 
-
-
-
-
 // TODO: when no option selected, there can be button with label which opens and focus menu on click
 // TODO: close menu on enter when nothing selected
 // TODO: when using enter to check/uncheck (maybe only when using search) blur select
-
-// TODO: minify build ... babel compile to ES5 ?
-// TODO: selec buttons should not be selectable
+// TODO: select buttons should not be selectable
 

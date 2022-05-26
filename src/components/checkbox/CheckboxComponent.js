@@ -8,6 +8,9 @@ export class CheckboxComponent {
    * @param {boolean} v 
    */
   setChecked(v) {
+    if (v === this._checked)
+      return;
+
     this._checked = v;
     this._inputEl.checked = v;
     this._dispatchOnChanged();

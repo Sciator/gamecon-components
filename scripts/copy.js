@@ -6,7 +6,7 @@ if (process.platform !== "win32") {
 }
 
 const source = "./src";
-const target = "C:\\wamp64\\www\\gamecon\\web\\soubory\\blackarrow\\_komponenty";
+const target = "..\\gamecon\\web\\soubory\\blackarrow\\_komponenty";
 
 /**
  * @param {string} src  The path to the thing to copy.

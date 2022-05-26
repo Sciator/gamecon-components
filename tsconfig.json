@@ -5,7 +5,8 @@
     "module": "CommonJS",
     "rootDir": "./src",
     "strict": true,
-    "checkJs": true
+    "checkJs": true,
+    "target": "ES6"
   },
   "include": ["src"],
   "exclude": ["node_modules", "scripts", "test"]

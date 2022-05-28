@@ -1,5 +1,11 @@
-import { CheckboxComponent, TimetableComponent, createTimetableComponentCell, MultiselectComponent, newEl, SelectComponent } from "../src/index.js";
+import { CheckboxComponent, TimetableComponent, createTimetableComponentCell, MultiselectComponent, newEl, SelectComponent, d3 } from "../src/index.js";
 import { options } from "./options.js";
+
+/**
+ * @typedef {Object} window
+ * @property { import("../src/utils/d3/d3-selection@3.d.ts").d3 } d3
+ */
+d3.select("body").style("color", "red")
 
 // init multiselect w/ top buttons
 const multiselectElement = document.querySelector("#multiselect");

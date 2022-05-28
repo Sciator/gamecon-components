@@ -1,3 +1,8 @@
+
+import "./d3/d3-selection@3.js";
+
+export const d3 = /** @type {import("./d3/d3-selection@3")} */ (window.d3);
+
 /**
  * @template T
  * @param {T | T[]} arrLike
